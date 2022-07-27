@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace HolyF.CodeAnalysis
 {
-    class SyntaxToken : SyntaxNode
+    public sealed class SyntaxToken : SyntaxNode
     {
         public override SyntaxKind Kind { get; }
         public int Position { get; }
@@ -18,10 +15,9 @@ namespace HolyF.CodeAnalysis
             Value = value;
         }
 
-        
         public override IEnumerable<SyntaxNode> GetChildren()
         {
             return Enumerable.Empty<SyntaxNode>();
         }
     }
-} 
+}

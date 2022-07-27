@@ -1,19 +1,22 @@
 namespace HolyF.CodeAnalysis
 {
-    enum SyntaxKind
+    public enum SyntaxKind
     {
-        NumberToken,
+        // Tokens
+        EndOfFileToken,
+        BadToken,
         WhitespaceToken,
+        NumberToken,
         PlusToken,
         MinusToken,
         StarToken,
         SlashToken,
         OpenParenthesisToken,
         CloseParenthesisToken,
-        BadToken,
-        EndOfFileToken,
-        NumberExpression,
+
+        // Expressions
+        LiteralExpression,
         BinaryExpression,
         ParenthesizedExpression
     }
-} 
+}

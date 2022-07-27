@@ -1,6 +1,6 @@
 namespace HolyF.CodeAnalysis
 {
-    class Parser
+    internal sealed class Parser
     {
         private readonly SyntaxToken[] _tokens;
 
@@ -20,7 +20,7 @@ namespace HolyF.CodeAnalysis
                 if (token.Kind != SyntaxKind.WhitespaceToken &&
                     token.Kind != SyntaxKind.BadToken)
                 {
-                    tokens.Add(token);   
+                    tokens.Add(token);
                 }
             } while (token.Kind != SyntaxKind.EndOfFileToken);
 
@@ -51,22 +51,24 @@ namespace HolyF.CodeAnalysis
         private SyntaxToken Match(SyntaxKind kind)
         {
             if (Current.Kind == kind)
+            {
                 return NextToken();
+            }
 
             _diagnostics.Add($"ERROR: Unexpected token <{Current.Kind}>, expected <{kind}>");
             return new SyntaxToken(kind, Current.Position, null, null);
         }
 
+        public SyntaxTree Parse()
+        {
+            var expresion = ParseExpression();
+            var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
+            return new SyntaxTree(_diagnostics, expresion, endOfFileToken);
+        }
+
         private ExpressionSyntax ParseExpression()
         {
             return ParseTerm();
-        }
-
-        public SyntaxTree Parse()
-        {
-            var expresion = ParseTerm();
-            var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
-            return new SyntaxTree(_diagnostics, expresion, endOfFileToken);
         }
 
         private ExpressionSyntax ParseTerm()
@@ -110,7 +112,7 @@ namespace HolyF.CodeAnalysis
             }
 
             var numberToken = Match(SyntaxKind.NumberToken);
-            return new NumberExpressionSyntax(numberToken);
+            return new LiteralExpressionSyntax(numberToken);
         }
     }
-} 
+}

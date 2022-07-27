@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-
 namespace HolyF.CodeAnalysis
 {
-    abstract class SyntaxNode
+    public abstract class SyntaxNode
     {
         public abstract SyntaxKind Kind { get; }
 
