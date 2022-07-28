@@ -17,6 +17,7 @@ namespace HolyF.CodeAnalysis
         // Expressions
         LiteralExpression,
         BinaryExpression,
-        ParenthesizedExpression
+        ParenthesizedExpression,
+        UnaryExpression
     }
 }

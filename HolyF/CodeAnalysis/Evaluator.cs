@@ -20,8 +20,23 @@ namespace HolyF.CodeAnalysis
             {
                 return (int)n.LiteralToken.Value!;
             }
-
-            if (node is BinaryExpressionSyntax b)
+            else if (node is UnaryExpressionSyntax u)
+            {
+                var operand = EvaluateExpression(u.Operand);
+                if (u.OperatorToken.Kind == SyntaxKind.MinusToken)
+                {
+                    return -operand;
+                }
+                else if (u.OperatorToken.Kind == SyntaxKind.PlusToken)
+                {
+                    return operand;
+                }
+                else
+                {
+                    throw new Exception($"Unexpected unary operator {u.OperatorToken.Kind}");
+                }
+            }
+            else if (node is BinaryExpressionSyntax b)
             {
                 var left = EvaluateExpression(b.Left);
                 var right = EvaluateExpression(b.Right);
@@ -40,8 +55,7 @@ namespace HolyF.CodeAnalysis
                         throw new Exception($"Unexpected binary operator {b.OperatorToken.Kind}");
                 };
             }
-
-            if (node is ParenthesizedExpressionSyntax p)
+            else if (node is ParenthesizedExpressionSyntax p)
             {
                 return EvaluateExpression(p.Expression);
             }

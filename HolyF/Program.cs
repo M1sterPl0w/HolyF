@@ -11,7 +11,6 @@ while (true)
         return;
     }
 
-
     if (line == "#showTree")
     {
         showTree = !showTree;
