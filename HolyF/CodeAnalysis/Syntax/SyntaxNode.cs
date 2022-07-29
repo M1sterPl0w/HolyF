@@ -1,4 +1,4 @@
-namespace HolyF.CodeAnalysis
+namespace HolyF.CodeAnalysis.Syntax
 {
     public abstract class SyntaxNode
     {

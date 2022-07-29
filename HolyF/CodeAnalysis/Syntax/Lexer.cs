@@ -1,4 +1,4 @@
-namespace HolyF.CodeAnalysis
+namespace HolyF.CodeAnalysis.Syntax
 {
     internal sealed class Lexer
     {
@@ -13,15 +13,18 @@ namespace HolyF.CodeAnalysis
 
         public IEnumerable<string> Diagnostics => _diagnostics;
 
-        private char Current
-        {
-            get
-            {
-                if (_position >= _text.Length)
-                    return '\0';
+        private char Current => Peek(0);
+        private char LookAHead => Peek(1);
 
-                return _text[_position];
+        private char Peek(int offset)
+        {
+            var index = _position + offset;
+            if (index >= _text.Length)
+            {
+                return '\0';
             }
+
+            return _text[index];
         }
 
         private void Next()
@@ -69,6 +72,21 @@ namespace HolyF.CodeAnalysis
                 return new SyntaxToken(SyntaxKind.WhitespaceToken, start, text, null);
             }
 
+            if (char.IsLetter(Current))
+            {
+                var start = _position;
+
+                while (char.IsLetter(Current))
+                {
+                    Next();
+                }
+
+                var length = _position - start;
+                var text = _text.Substring(start, length);
+                var kind = SyntaxFacts.GetKeywordKind(text);
+                return new SyntaxToken(kind, start, text, null);
+            }
+
             switch (Current)
             {
                 case '+':
@@ -83,10 +101,38 @@ namespace HolyF.CodeAnalysis
                     return new SyntaxToken(SyntaxKind.OpenParenthesisToken, _position++, "(", null);
                 case ')':
                     return new SyntaxToken(SyntaxKind.CloseParenthesisToken, _position++, ")", null);
+                case '&':
+                    if (LookAHead == '&')
+                    {
+                        return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, _position += 2, "&&", null);
+                    }
+                    break;
+                case '|':
+                    if (LookAHead == '|')
+                    {
+                        return new SyntaxToken(SyntaxKind.PipePipeToken, _position += 2, "||", null);
+                    }
+                    break;
+                case '=':
+                    if (LookAHead == '=')
+                    {
+                        return new SyntaxToken(SyntaxKind.EqualsEqualsToken, _position += 2, "==", null);
+                    }
+                    break;
+                case '!':
+                    if (LookAHead == '=')
+                    {
+                        return new SyntaxToken(SyntaxKind.ExclamationMarkEqualsToken, _position += 2, "!=", null);
+                    }
+
+                    return new SyntaxToken(SyntaxKind.ExclamationMarkToken, _position++, "!", null);
                 default:
-                    _diagnostics.Add($"ERROR: bad character input: '{Current}'");
-                    return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null);
+                    break;
+
             }
+
+            _diagnostics.Add($"ERROR: bad character input: '{Current}'");
+            return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null);
         }
     }
 }

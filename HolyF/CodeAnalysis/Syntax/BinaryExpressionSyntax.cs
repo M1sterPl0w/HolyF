@@ -1,4 +1,4 @@
-namespace HolyF.CodeAnalysis
+namespace HolyF.CodeAnalysis.Syntax
 {
     public sealed class BinaryExpressionSyntax : ExpressionSyntax
     {

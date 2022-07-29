@@ -1,4 +1,6 @@
 ﻿using HolyF.CodeAnalysis;
+using HolyF.CodeAnalysis.Binding;
+using HolyF.CodeAnalysis.Syntax;
 
 var showTree = false;
 
@@ -22,8 +24,14 @@ while (true)
         Console.Clear();
         continue;
     }
+    else if (line == "#exit")
+    {
+        return;
+    }
 
     var syntaxTree = SyntaxTree.Parse(line);
+    var binder = new Binder();
+    var boundExpression = binder.BindExpression(syntaxTree.Root);
 
     if (showTree)
     {
@@ -32,9 +40,10 @@ while (true)
         Console.ResetColor();
     }
 
-    if (!syntaxTree.Diagnostics.Any())
+    var diagnostics = syntaxTree.Diagnostics.Concat(binder.Diagnostics).ToArray();
+    if (!diagnostics.Any())
     {
-        var e = new Evaluator(syntaxTree.Root);
+        var e = new Evaluator(boundExpression);
         var result = e.Evaluate();
         Console.WriteLine(result);
     }
@@ -42,7 +51,7 @@ while (true)
     {
         Console.ForegroundColor = ConsoleColor.DarkRed;
 
-        foreach (var diagnostic in syntaxTree.Diagnostics)
+        foreach (var diagnostic in diagnostics)
         {
             Console.WriteLine(diagnostic);
         }

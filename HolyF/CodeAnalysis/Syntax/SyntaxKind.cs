@@ -1,4 +1,4 @@
-namespace HolyF.CodeAnalysis
+namespace HolyF.CodeAnalysis.Syntax
 {
     public enum SyntaxKind
     {
@@ -13,11 +13,21 @@ namespace HolyF.CodeAnalysis
         SlashToken,
         OpenParenthesisToken,
         CloseParenthesisToken,
+        ExclamationMarkToken,
+        AmpersandAmpersandToken,
+        PipePipeToken,
+        EqualsEqualsToken,
+        ExclamationMarkEqualsToken,
+        IdentifierToken,
 
         // Expressions
         LiteralExpression,
         BinaryExpression,
         ParenthesizedExpression,
-        UnaryExpression
+        UnaryExpression,
+
+        // Keywords
+        TrueKeyword,
+        FalseKeyword,
     }
 }
