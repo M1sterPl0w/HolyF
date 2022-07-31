@@ -4,8 +4,14 @@ namespace HolyF.CodeAnalysis.Binding
 {
     internal sealed class Binder
     {
-        private readonly List<string> _diagnostics = new List<string>();
-        public IEnumerable<string> Diagnostics => _diagnostics;
+        private readonly DiagnosticBag _diagnostics = new DiagnosticBag();
+        public DiagnosticBag Diagnostics => _diagnostics;
+        private readonly Dictionary<VariableSymbol, object?> _variables;
+
+        public Binder(Dictionary<VariableSymbol, object?> variables)
+        {
+            _variables = variables;
+        }
 
         public BoundExpression BindExpression(ExpressionSyntax syntax)
         {
@@ -19,9 +25,48 @@ namespace HolyF.CodeAnalysis.Binding
                     return BindUnaryExpression((UnaryExpressionSyntax)syntax);
                 case SyntaxKind.ParenthesizedExpression:
                     return BindParenthesizedExpression((ParenthesizedExpressionSyntax)syntax);
+                case SyntaxKind.NameExpression:
+                    return BindNameExpression((NameExpressionSyntax)syntax);
+                case SyntaxKind.AssignmentExpression:
+                    return BindAssignmentExpression((AssignmentExpressionSyntax)syntax);
                 default:
                     throw new Exception($"Unexpected syntax <{syntax.Kind}>");
             }
+        }
+
+        private BoundExpression BindAssignmentExpression(AssignmentExpressionSyntax syntax)
+        {
+            var name = syntax.IdentifierToken.Text;
+            var boundExpression = BindExpression(syntax.Expression);
+
+            var existingVariable = _variables.Keys.FirstOrDefault(v => v.Name == name);
+            if (existingVariable != null)
+            {
+                _variables.Remove(existingVariable);
+            }
+
+            var variable = new VariableSymbol(name, boundExpression.Type);
+            _variables[variable] = null;
+
+            return new BoundAssignmentExpression(variable, boundExpression);
+        }
+
+        private BoundExpression BindNameExpression(NameExpressionSyntax syntax)
+        {
+            var name = syntax.IdentifierToken.Text;
+            var variable = _variables.Keys.FirstOrDefault(v => v.Name == name);
+            if (variable == null)
+            {
+                _diagnostics.ReportUndefinedName(syntax.IdentifierToken.Span, name);
+                return new BoundLiteralExpression(0);
+            }
+
+            return new BoundVariableExpression(variable);
+        }
+
+        private BoundExpression BindParenthesizedExpression(ParenthesizedExpressionSyntax syntax)
+        {
+            return BindExpression(syntax.Expression);
         }
 
         private BoundExpression BindUnaryExpression(UnaryExpressionSyntax syntax)
@@ -31,7 +76,7 @@ namespace HolyF.CodeAnalysis.Binding
 
             if (boundOperator == null)
             {
-                _diagnostics.Add($"Unary operator <{syntax.OperatorToken.Text}> is not defined for type <{boundOperand.Type}>");
+                _diagnostics.ReportUndefinedUnaryOperator(syntax.OperatorToken.Span, syntax.OperatorToken.Text, boundOperand.Type);
                 return boundOperand;
             }
 
@@ -47,7 +92,7 @@ namespace HolyF.CodeAnalysis.Binding
 
             if (boundOperator == null)
             {
-                _diagnostics.Add($"Binary operator <{syntax.OperatorToken.Text}> is not defined for type <{boundLeft.Type}> and/or <{boundRight.Type}>");
+                _diagnostics.ReportUndefinedBinaryOperator(syntax.OperatorToken.Span, syntax.OperatorToken.Text, boundLeft.Type, boundRight.Type);
                 return boundLeft;
             }
 
@@ -58,11 +103,6 @@ namespace HolyF.CodeAnalysis.Binding
         {
             var value = syntax.Value ?? 0;
             return new BoundLiteralExpression(value);
-        }
-
-        private BoundExpression BindParenthesizedExpression(ParenthesizedExpressionSyntax syntax)
-        {
-            return new BoundParenthesizedExpression(syntax.Expression);
         }
     }
 }

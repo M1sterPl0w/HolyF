@@ -5,6 +5,8 @@ namespace HolyF.CodeAnalysis.Binding
         LiteralExpression,
         UnaryExpression,
         BinaryExpression,
-        ParenthesizedExpression
+        ParenthesizedExpression,
+        VariableExpression,
+        AssignmentExpression
     }
 }

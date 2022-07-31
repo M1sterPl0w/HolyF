@@ -1,8 +1,8 @@
 ﻿using HolyF.CodeAnalysis;
-using HolyF.CodeAnalysis.Binding;
 using HolyF.CodeAnalysis.Syntax;
 
 var showTree = false;
+var variables = new Dictionary<VariableSymbol, object?>();
 
 while (true)
 {
@@ -10,7 +10,7 @@ while (true)
     var line = Console.ReadLine();
     if (string.IsNullOrWhiteSpace(line))
     {
-        return;
+        continue;
     }
 
     if (line == "#showTree")
@@ -30,8 +30,9 @@ while (true)
     }
 
     var syntaxTree = SyntaxTree.Parse(line);
-    var binder = new Binder();
-    var boundExpression = binder.BindExpression(syntaxTree.Root);
+    var compilation = new Compilation(syntaxTree);
+    var result = compilation.Evaluate(variables);
+
 
     if (showTree)
     {
@@ -40,20 +41,36 @@ while (true)
         Console.ResetColor();
     }
 
-    var diagnostics = syntaxTree.Diagnostics.Concat(binder.Diagnostics).ToArray();
-    if (!diagnostics.Any())
+    if (!result.Diagnostics.Any())
     {
-        var e = new Evaluator(boundExpression);
-        var result = e.Evaluate();
-        Console.WriteLine(result);
+        Console.WriteLine(result.Value);
     }
     else
     {
         Console.ForegroundColor = ConsoleColor.DarkRed;
 
-        foreach (var diagnostic in diagnostics)
+        foreach (var diagnostic in result.Diagnostics)
         {
+            Console.WriteLine();
+
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(diagnostic);
+            Console.ResetColor();
+
+            var prefix = line.Substring(0, diagnostic.Span.Start);
+            var error = line.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
+            var suffix = line.Substring(diagnostic.Span.End);
+
+            Console.WriteLine("    ");
+            Console.Write(prefix);
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(error);
+            Console.ResetColor();
+
+            Console.Write(suffix);
+
+            Console.WriteLine();
         }
 
         Console.ResetColor();

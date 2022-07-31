@@ -4,14 +4,12 @@ namespace HolyF.CodeAnalysis.Syntax
     {
         private readonly string _text;
         private int _position;
-        private List<string> _diagnostics = new List<string>();
+        public DiagnosticBag Diagnostics = new DiagnosticBag();
 
         public Lexer(string text)
         {
             _text = text;
         }
-
-        public IEnumerable<string> Diagnostics => _diagnostics;
 
         private char Current => Peek(0);
         private char LookAHead => Peek(1);
@@ -39,10 +37,10 @@ namespace HolyF.CodeAnalysis.Syntax
                 return new SyntaxToken(SyntaxKind.EndOfFileToken, _position, "\0", null);
             }
 
+            var start = _position;
+
             if (char.IsDigit(Current))
             {
-                var start = _position;
-
                 while (char.IsDigit(Current))
                 {
                     Next();
@@ -52,7 +50,7 @@ namespace HolyF.CodeAnalysis.Syntax
                 var text = _text.Substring(start, length);
                 if (!int.TryParse(text, out var value))
                 {
-                    _diagnostics.Add($"The number {_text} isn't valid Int32.");
+                    Diagnostics.ReportInvalidNumber(new TextSpan(start, length), _text, typeof(int));
                 }
 
                 return new SyntaxToken(SyntaxKind.NumberToken, start, text, value);
@@ -60,8 +58,6 @@ namespace HolyF.CodeAnalysis.Syntax
 
             if (char.IsWhiteSpace(Current))
             {
-                var start = _position;
-
                 while (char.IsWhiteSpace(Current))
                 {
                     Next();
@@ -74,8 +70,6 @@ namespace HolyF.CodeAnalysis.Syntax
 
             if (char.IsLetter(Current))
             {
-                var start = _position;
-
                 while (char.IsLetter(Current))
                 {
                     Next();
@@ -104,25 +98,30 @@ namespace HolyF.CodeAnalysis.Syntax
                 case '&':
                     if (LookAHead == '&')
                     {
-                        return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, _position += 2, "&&", null);
+                        _position += 2;
+                        return new SyntaxToken(SyntaxKind.AmpersandAmpersandToken, start, "&&", null);
                     }
                     break;
                 case '|':
                     if (LookAHead == '|')
                     {
-                        return new SyntaxToken(SyntaxKind.PipePipeToken, _position += 2, "||", null);
+                        _position += 2;
+                        return new SyntaxToken(SyntaxKind.PipePipeToken, start, "||", null);
                     }
                     break;
                 case '=':
                     if (LookAHead == '=')
                     {
-                        return new SyntaxToken(SyntaxKind.EqualsEqualsToken, _position += 2, "==", null);
+                        _position += 2;
+                        return new SyntaxToken(SyntaxKind.EqualsEqualsToken, start, "==", null);
                     }
-                    break;
+
+                    return new SyntaxToken(SyntaxKind.EqualsToken, _position++, "=", null);
                 case '!':
                     if (LookAHead == '=')
                     {
-                        return new SyntaxToken(SyntaxKind.ExclamationMarkEqualsToken, _position += 2, "!=", null);
+                        _position += 2;
+                        return new SyntaxToken(SyntaxKind.ExclamationMarkEqualsToken, start, "!=", null);
                     }
 
                     return new SyntaxToken(SyntaxKind.ExclamationMarkToken, _position++, "!", null);
@@ -131,7 +130,8 @@ namespace HolyF.CodeAnalysis.Syntax
 
             }
 
-            _diagnostics.Add($"ERROR: bad character input: '{Current}'");
+            Diagnostics.ReportBadCharacter(_position, Current);
+
             return new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(_position - 1, 1), null);
         }
     }

@@ -17,6 +17,7 @@ namespace HolyF.CodeAnalysis.Syntax
         AmpersandAmpersandToken,
         PipePipeToken,
         EqualsEqualsToken,
+        EqualsToken,
         ExclamationMarkEqualsToken,
         IdentifierToken,
 
@@ -25,6 +26,8 @@ namespace HolyF.CodeAnalysis.Syntax
         BinaryExpression,
         ParenthesizedExpression,
         UnaryExpression,
+        NameExpression,
+        AssignmentExpression,
 
         // Keywords
         TrueKeyword,

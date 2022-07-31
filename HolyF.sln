@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HolyF", "HolyF\HolyF.csproj", "{77A5818D-C908-4DC3-8AEB-AD06BBD0E902}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HolyF.App", "HolyF.App\HolyF.App.csproj", "{77A5818D-C908-4DC3-8AEB-AD06BBD0E902}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
